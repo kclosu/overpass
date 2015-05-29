@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Leaflet Draw</title>  
+  <meta charset="utf-8" />
+
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+  <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.2.3/leaflet.draw.css">
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.2.3/leaflet.draw.js"></script>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+	
+	<!--[if lte IE 8]>
+		<link rel="stylesheet" href="lib/leaflet/leaflet.ie.css" />
+		<link rel="stylesheet" href="leaflet.draw.ie.css" />
+	<![endif]-->
+</head>
+<body>
+	<div id="map" style="position: absolute; top: 0; left: 0; width: 80%; height: 100%;"></div>
+	<div id="latlngs" style="position: absolute; top: 0; left: 80%; width: 15%; height: 100%;"></div>
+	<script type="text/javascript" src="overpass.js"></script>
+  <script>
+	
+		var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+			osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+			osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: osmAttrib}),
+			map = new L.Map('map', {layers: [osm], center: new L.LatLng(0, 0), zoom: 1 });
+
+		var drawnItems = new L.FeatureGroup();
+		map.addLayer(drawnItems);
+
+		var drawControl = new L.Control.Draw({
+			draw: {
+				position: 'topleft',
+				polygon: {
+					title: 'Draw a sexy polygon!',
+					allowIntersection: false,
+					drawError: {
+						color: '#b00b00',
+						timeout: 1000
+					},
+					shapeOptions: {
+						color: '#bada55'
+					},
+					showArea: true
+				},
+				polyline: {
+					metric: false
+				},
+				circle: {
+					shapeOptions: {
+						color: '#662d91'
+					}
+				}
+			},
+			edit: {
+				featureGroup: drawnItems
+			}
+		});
+
+    map.on('draw:created', function (e) {
+      var type = e.layerType,
+        layer = e.layer;
+
+      if (type === 'marker') {
+        var overpass = new Overpass().around([layer._latlng.lat, layer._latlng.lng]).run(function(r){ 
+          $(this.html()).appendTo('#latlngs')
+          .css('margin-bottom', '1em');
+        });
+        return ;
+      }
+
+      var left = _.min(layer._latlngs, function(p){ return p.lat; }).lat;
+      var right = _.max(layer._latlngs, function(p){ return p.lat; }).lat;
+      var top = _.max(layer._latlngs, function(p){ return p.lng; }).lng;
+      var bottom = _.min(layer._latlngs, function(p){ return p.lng; }).lng;
+
+      $('<div>', {
+        text: [left,bottom,right,top].join(',')
+      }).appendTo('#latlngs')
+      .css('margin-bottom', '1em');
+
+      var overpass = new Overpass().bbox([left,bottom,right,top]).run(function(r){ 
+        $(this.html()).appendTo('#latlngs')
+        .css('margin-bottom', '1em');
+      });
+
+      // Do whatever else you need to. (save to db, add to map etc)
+      map.addLayer(layer);
+    });
+
+		map.addControl(drawControl);
+		
+	</script>
+</body>
+</html>
