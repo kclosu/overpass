@@ -16,14 +16,30 @@
 
     var query = function(){
       var q = this.bbox + this.around;
-      return "[out:json];\
-      (\
-        node(" + q + ");\
-        way(" + q + ");\
-        relation(" + q + ");\
-        <;\
-      );\
-      out meta;";
+      var filters = this.filter;
+      var body = '';
+      if(filters){
+        for(var tagname in filters){
+          var s =  "node[%filter](" + q + ");\n\
+          way[%filter](" + q + ");\n\
+          relation[%filter](" + q + ");\n";
+          body += s.split('%filter').join('"' + tagname + '"="' + filters[tagname] + '"' );
+        }
+      } else {
+        body = 
+         "node(" + q + ");\n\
+          way(" + q + ");\n\
+          relation(" + q + ");\n"
+        ;
+      }
+
+      return "[out:json];\n\
+      (\n"
+        + body + 
+      ");\n\
+      out body;\n\
+      >;\n\
+      out skel qt;";
     };
 
     return {

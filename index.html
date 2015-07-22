@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Leaflet Draw</title>  
+	<title>BBox</title>  
   <meta charset="utf-8" />
 
   <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
@@ -22,8 +22,8 @@
 	<script type="text/javascript" src="overpass.js"></script>
   <script>
 	
-		var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-			osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+		var osmUrl = 'http://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png',
+			osmAttrib = '',
 			osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: osmAttrib}),
 			map = new L.Map('map', {layers: [osm], center: new L.LatLng(0, 0), zoom: 1 });
 
@@ -81,7 +81,15 @@
       }).appendTo('#latlngs')
       .css('margin-bottom', '1em');
 
-      var overpass = new Overpass().bbox([left,bottom,right,top]).run(function(r){ 
+      var overpass = new Overpass().bbox([left,bottom,right,top]).filter({
+        amenity: "military",
+        landuse: "military",
+        military: "*",
+        amenity: "police",
+        landuse: "police",
+        police: "*",
+        amenity: "ranger_station" 
+      }).run(function(r){ 
         $(this.html()).appendTo('#latlngs')
         .css('margin-bottom', '1em');
       });
