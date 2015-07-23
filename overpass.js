@@ -16,7 +16,7 @@
 
     var query = function(){
       var q = this.bbox + this.around;
-      var filters = this.filter;
+      var filters = this.filters;
       var body = '';
       if(filters){
         for(var tagname in filters){
@@ -43,8 +43,8 @@
     };
 
     return {
-      filter: function(filter){
-        this.filter = filter;
+      filter: function(filters){
+        this.filters = filters;
         return this; 
       },
       bbox: function(bbox){
